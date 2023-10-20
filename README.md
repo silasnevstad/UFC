@@ -20,6 +20,21 @@ UFC operates in a structured, step-wise manner to dissect, verify, and substanti
   - Operation: Analyzes the retrieved information to substantiate or refute each claim, gathering a collection of supporting or contradicting evidence. Compiles the results into a structured output.
   - Output: A detailed report listing each claim, its substantiation status and references to the supporting/opposing sources.
 
+## Sources
+
+### APIs
+- [Wikipedia API](https://pypi.org/project/wikipedia/)
+- [Europeana]()
+- [DPLA]()
+
+### Sites
+- [National Archives](https://www.archives.gov/)
+- [Library of Congress](https://www.loc.gov/)
+- [Smithsonian](https://www.si.edu/)
+- [National Geographic](https://www.nationalgeographic.com/)
+- [History Net](https://www.historynet.com/)
+
+
 ## Future Enhancements
 - Expand the domain coverage beyond history to include science, current events, and other relevant domains.
 - Implement feedback loop to allow users to provide feedback on the accuracy of the substantiation reports.
