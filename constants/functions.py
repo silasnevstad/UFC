@@ -1,6 +1,6 @@
 split_into_claims = {
     "name": "split_into_claims",
-    "description": "Verifies a list of individual claims",
+    "description": "Splits some text into individual claims",
     "parameters": {
         "type": "object",
         "properties": {
@@ -17,9 +17,9 @@ split_into_claims = {
     },
 }
 
-determine_factualness_or_credibility = {
-    "name": "determine_factualness_or_credibility",
-    "description": "Determines the factualness or credibility of a claim",
+determine_search_term = {
+    "name": "determine_search_term",
+    "description": "Determines the search term / topic of a claim (that could be used to search for evidence)",
     "parameters": {
         "type": "object",
         "properties": {
@@ -27,7 +27,7 @@ determine_factualness_or_credibility = {
                 "type": "string",
                 "description": "A sentence/piece of a sentence making only a single claim",
             },
-            "topic": {
+            "searchTerm": {
                 "type": "string",
                 "description": "The topic or search term associated with the claim",
             },
@@ -36,13 +36,13 @@ determine_factualness_or_credibility = {
                 "description": "The genre of the claim (strictly history, science or politics)",
             },
         },
-        "required": ["claim", "topic"],
+        "required": ["claim", "searchTerm", "genre"],
     },
 }
 
 evaluate_claim = {
-    "name": "give_claim_evaluation",
-    "description": "Returns a claim evaluation given claim evaluation information",
+    "name": "evaluate_claim",
+    "description": "Evaluates the factual accuracy of a claim based on provided evidence.",
     "parameters": {
         "type": "object",
         "properties": {

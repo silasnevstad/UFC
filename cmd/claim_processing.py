@@ -1,5 +1,5 @@
 import json
-from constants.functions import determine_factualness_or_credibility, evaluate_claim
+from constants.functions import determine_search_term, evaluate_claim
 from helpers.tokens import count_tokens
 from sources.api.dpla import DPLAClient
 from sources.api.arxiv import ArxivClient
@@ -34,13 +34,14 @@ def process_claim(logger, gpt_client, claim, topic=None, genre=None):
     while topic is None or genre is None:
         # If topic or genre is not provided, then we need to determine it
         function_call = gpt_client.get_function_call(
-            [{"role": "user", "content": f"Identify topic for the claim: {claim}"}],
-            [determine_factualness_or_credibility]
+            [{"role": "user", "content": f"Identify topic for the claim : {claim}"}],
+            [determine_search_term]
         )
-    
-        if function_call and function_call.get('name') == 'determine_factualness_or_credibility':
+        
+        if function_call:
+            logger.info(f'Found function call: {function_call.get("name")}, arguments: {function_call.get("arguments")}')
             arguments = function_call.get('arguments')
-            topic = json.loads(arguments).get('topic')
+            topic = json.loads(arguments).get('searchTerm')
             genre = json.loads(arguments).get('genre')
         else:
             logger.error("No function call found in response")

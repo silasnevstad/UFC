@@ -7,3 +7,6 @@ app.log
 .env
 __init__.py
 
+build/
+dist/
+main.spec

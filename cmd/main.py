@@ -1,6 +1,6 @@
 import json
 from gpt.gpt_client import GPTClient
-from constants.functions import split_into_claims, determine_factualness_or_credibility, evaluate_claim
+from constants.functions import split_into_claims, determine_search_term, evaluate_claim
 from constants.prompts import INITIAL_PROMPT
 from .claim_processing import process_claim
 import logging
@@ -19,7 +19,7 @@ def run_conversation(user_input):
         {"role": "system", "content": INITIAL_PROMPT},
         {"role": "user", "content": user_input}
     ]
-    functions = [split_into_claims, determine_factualness_or_credibility, evaluate_claim]
+    functions = [split_into_claims, determine_search_term, evaluate_claim]
 
     evaluation_results = []
 
@@ -28,6 +28,7 @@ def run_conversation(user_input):
 
     if function_call:
         function_name = function_call.get('name')
+        logger.info(f'Found function call: {function_name}, arguments: {function_call.get("arguments")}')
         if function_name == 'split_into_claims':
             # Multiple claims scenario
             claims = json.loads(function_call.get('arguments', {})).get('claims', [])
@@ -35,11 +36,11 @@ def run_conversation(user_input):
             for claim in claims:
                 result = process_claim(logger, gpt_client, claim)
                 evaluation_results.append(result)
-        elif function_name == 'determine_factualness_or_credibility':
+        elif function_name == 'determine_search_term':
             # Single claim scenario
             arguments = json.loads(function_call.get('arguments', {}))
             claim = arguments.get('claim')
-            topic = arguments.get('topic')
+            topic = arguments.get('searchTerm')
             genre = arguments.get('genre')
             logger.info(f'Found single claim: {claim}')
             result = process_claim(logger, gpt_client, claim, topic, genre)
