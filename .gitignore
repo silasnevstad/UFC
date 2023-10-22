@@ -1,1 +1,9 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info
+app.log
 .idea
+.env
+__init__.py
+

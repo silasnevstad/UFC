@@ -3,18 +3,34 @@ import requests
 from bs4 import BeautifulSoup
 
 class NationalArchivesScraper(WebScraper):
-    BASE_URL = 'https://www.archives.gov/search'
+    BASE_URL = 'https://search.archives.gov/search'
 
     def search(self, query):
-        params = {'q': query}
+        params = {
+            'query': query,
+            'submit': '',
+            'utf8': '',
+            'affiliate': 'national-archives'
+        }
         response = requests.get(self.BASE_URL, params=params)
-        return self.parse_page(response.content)
+        if response.status_code != 200:
+            return []
+        return self.parse_search_results(response.content)
 
-    def retrieve_page(self, url):
-        response = requests.get(url)
-        return self.parse_page(response.content)
-
-    def parse_page(self, html_content):
+    def parse_search_results(self, html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
-        # Parsing logic specific to National Archives
-        pass
+        search_results = soup.find_all('div', class_='content-block-item result')
+        articles = []
+        for result in search_results[:5]:  # Limiting to the first 5 results
+            title_tag = result.find('h4', class_='title').find('a')
+            title = title_tag.text
+            url = title_tag['href']
+            text_content = self.retrieve_page(url)
+            articles.append({
+                'title': title,
+                'url': url,
+                'text': text_content
+            })
+        return articles
+
+        
