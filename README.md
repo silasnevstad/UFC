@@ -9,32 +9,18 @@ UFC operates in a structured, step-wise manner to dissect, verify, and substanti
 ### Claim Segmentation
   - Input: A body of text containing one or more claims.
   - Operation: The text is analyzed and broken down into individual claims for verification.
-### Claim Verification
+### Claim Identification
   - Input: Individual claims.
-  - Operation: Each claim is processed to determine its topic and search terms.
+  - Operation: Each claim is processed to determine its genre and suggested search terms.
 ### Source Retrieval
   - Input: Claims and corresponding topics/search terms.
-  - Operation: Executes queries through APIs and web scrapers to retrieve reputable information pertinent to each claim.
+  - Operation: Retrieves data through APIs and web scrapers to gain reputable information pertinent to each claim.
 ### Claim Verification
   - Input: Claims and gathered reputable information.
   - Operation: Analyzes the retrieved information to substantiate or refute each claim, gathering a collection of supporting or contradicting evidence. Compiles the results into a structured output.
   - Output: A detailed report listing each claim, its substantiation status and references to the supporting/opposing sources.
 
-## Sources
-
-### APIs
-- [Wikipedia API](https://pypi.org/project/wikipedia/)
-- [Europeana]()
-- [DPLA]()
-
-### Sites
-- [National Archives](https://www.archives.gov/)
-- [Library of Congress](https://www.loc.gov/)
-- [Smithsonian](https://www.si.edu/)
-- [National Geographic](https://www.nationalgeographic.com/)
-- [History Net](https://www.historynet.com/)
-
 
 ## Future Enhancements
-- Expand the domain coverage beyond history to include science, current events, and other relevant domains.
+- Expand the domain coverage to include other relevant domains.
 - Implement feedback loop to allow users to provide feedback on the accuracy of the substantiation reports.
