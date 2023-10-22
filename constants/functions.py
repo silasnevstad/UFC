@@ -42,7 +42,7 @@ determine_search_term = {
 
 evaluate_claim = {
     "name": "evaluate_claim",
-    "description": "Assesses claim's truth based on evidence.",
+    "description": "Evaluate claim's truth based on evidence.",
     "parameters": {
         "type": "object",
         "properties": {
