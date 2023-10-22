@@ -1,15 +1,15 @@
 split_into_claims = {
     "name": "split_into_claims",
-    "description": "Splits some text into individual claims",
+    "description": "Breaks text into individual, standalone claims.",
     "parameters": {
         "type": "object",
         "properties": {
             "claims": {
                 "type": "array",
-                "description": "A list of individual claims (each claim should only be making a single claim)",
+                "description": "List of distinct claims.",
                 "items": {
                     "type": "string",
-                    "description": "A sentence/piece of a sentence making only a single claim",
+                    "description": "Single, standalone claim.",
                 },
             },
         },
@@ -19,21 +19,21 @@ split_into_claims = {
 
 determine_search_term = {
     "name": "determine_search_term",
-    "description": "Determines the search term / topic of a claim (that could be used to search for evidence)",
+    "description": "Extracts specific seacrh term and genre from a claim.",
     "parameters": {
         "type": "object",
         "properties": {
             "claim": {
                 "type": "string",
-                "description": "A sentence/piece of a sentence making only a single claim",
+                "description": "Single claim sentence.",
             },
             "searchTerm": {
                 "type": "string",
-                "description": "The topic or search term associated with the claim",
+                "description": "Specific search term to be used for evidence search.",
             },
             "genre": {
                 "type": "string",
-                "description": "The genre of the claim (strictly history, science or politics)",
+                "description": "Claim genre (strictly either history, science, politics).",
             },
         },
         "required": ["claim", "searchTerm", "genre"],
@@ -42,45 +42,45 @@ determine_search_term = {
 
 evaluate_claim = {
     "name": "evaluate_claim",
-    "description": "Evaluates the factual accuracy of a claim based on provided evidence.",
+    "description": "Assesses claim's truth based on evidence.",
     "parameters": {
         "type": "object",
         "properties": {
             "claim": {
                 "type": "string",
-                "description": "The claim being evaluated",
+                "description": "Statement being assessed.",
             },
-            "fixed_claim": {
+            "fixedClaim": {
                 "type": "string",
-                "description": "If the claim is not true, then provide a fixed claim correcting it",
+                "description": "Accurate version if claim is false.",
             },
             "evaluation": {
                 "type": "boolean",
-                "description": "The evaluation of the claim (true = factual, false = not factual)",
+                "description": "Truth assessment (true/false).",
             },
             "evidence": {
                 "type": "array",
-                "description": "The evidence used to support/oppose the claim (only evidence pertaining to the claim should be provided)",
+                "description": "Evidence supporting/opposing claim (max 3).",
                 "items": {
                     "type": "object",
                     "properties": {
                         "url": {
                             "type": "string",
-                            "description": "The URL of the evidence",
+                            "description": "Evidence URL.",
                         },
                         "source": {
                             "type": "string",
-                            "description": "The source of the evidence",
+                            "description": "Evidence source.",
                         },
                         "text": {
                             "type": "string",
-                            "description": "The text of the evidence",
+                            "description": "Excerpt from evidence supporting/oppsing claim.",
                         },
                     },
                     "required": ["url", "source", "text"],
                 },
             }
         },
-        "required": ["claim", "evaluation", "evidence"],
+        "required": ["claim", "evaluation", "evidence", "fixedClaim"],
     },
 }

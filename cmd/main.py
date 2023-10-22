@@ -2,7 +2,7 @@ import json
 from gpt.gpt_client import GPTClient
 from constants.functions import split_into_claims, determine_search_term, evaluate_claim
 from constants.prompts import INITIAL_PROMPT
-from .claim_processing import process_claim
+from .claim_processing import process_claim, get_topic_and_genre
 import logging
 
 logging.basicConfig(level=logging.INFO,
@@ -34,7 +34,8 @@ def run_conversation(user_input):
             claims = json.loads(function_call.get('arguments', {})).get('claims', [])
             logger.info(f'Found {len(claims)} claims: {claims}')
             for claim in claims:
-                result = process_claim(logger, gpt_client, claim)
+                topic, genre = get_topic_and_genre(logger, gpt_client, claim)
+                result = process_claim(logger, gpt_client, claim, topic, genre)
                 evaluation_results.append(result)
         elif function_name == 'determine_search_term':
             # Single claim scenario

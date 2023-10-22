@@ -9,6 +9,7 @@ def create_test_suite():
     test_suite = unittest.TestSuite()
 
     # test_suite.addTest(loader.loadTestsFromTestCase(TestReutersScraper)) # WIP - requires selenium
+    test_suite.addTest(loader.loadTestsFromTestCase(TestNatureScraper))
     test_suite.addTest(loader.loadTestsFromTestCase(TestArxivClient))
     test_suite.addTest(loader.loadTestsFromTestCase(TestPubMedClient))
     test_suite.addTest(loader.loadTestsFromTestCase(TestDPLAClient))

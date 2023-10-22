@@ -17,9 +17,10 @@ class ReutersScraper(WebScraper):
         if response.status_code != 200:
             return []
         response.html.render()  # This line executes JavaScript
-        return self.parse_search_results(response.html.raw_html)
+        print(response.html.raw_html)
+        return self.parse_search_results(response.html.raw_html, query)
 
-    def parse_search_results(self, html_content):
+    def parse_search_results(self, html_content, query):
         soup = BeautifulSoup(html_content, 'html.parser')
         search_results = soup.find_all('div', class_='media-story-card__body__3tRWy')
         articles = []
@@ -32,7 +33,7 @@ class ReutersScraper(WebScraper):
                     url = url_tag['href']
                     if url.startswith('/'):
                         url = 'https://www.reuters.com' + url
-                    text_content = self.retrieve_page(url)
+                    text_content = self.retrieve_page(url, query)
                     articles.append({
                         'title': title,
                         'url': url,

@@ -15,15 +15,15 @@ class GoogleScholarScraper(WebScraper):
         search = GoogleSearch(params)
         results = search.get_dict()
         organic_results = results["organic_results"]
-        return self.parse_search_results(organic_results)
+        return self.parse_search_results(organic_results, query)
 
-    def parse_search_results(self, html_content):
+    def parse_search_results(self, html_content, query):
         results = []
 
         for result in html_content:
             title = result.get('title')
             url = result.get('link')
-            text_content = self.retrieve_page(url)
+            text_content = self.retrieve_page(url, query)
 
             results.append({
                 'title': title,

@@ -4,6 +4,8 @@ from readability.readability import Document
 import fitz
 import tempfile
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
+import spacy
 
 class WebScraper:
     def __init__(self):
@@ -11,11 +13,12 @@ class WebScraper:
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
         })
+        self.nlp = spacy.load("en_core_web_sm")
 
     def search(self, query):
         raise NotImplementedError
 
-    def retrieve_page(self, url):
+    def retrieve_page(self, url, query):
         try:
             response = self.session.get(url, timeout=10)
             response.raise_for_status()
@@ -25,23 +28,25 @@ class WebScraper:
         
         content_type = response.headers.get('Content-Type')
         if 'text/html' in content_type:
-            return self.parse_page_content(response.content)
+            return self.parse_page_content(response.content, query)
         elif 'application/pdf' in content_type:
             return self.parse_pdf_content(response.content)
         else:
             print(f"Unhandled content type {content_type} for URL {url}")
             return ''
 
-    def parse_page(self, html_content):
-        raise NotImplementedError
-    
-    def parse_page_content(self, html_content):
+    def parse_page_content(self, html_content, query):
         doc = Document(html_content)
         cleaned_html = doc.summary()
         
         soup = BeautifulSoup(cleaned_html, 'html.parser')
-        text_content = soup.get_text(separator=' ', strip=True)
-        return text_content
+        text_content = soup.get_text(separator='\n', strip=True)
+
+        # Clean text
+        text_content = text_content.replace('\\"', '').replace('\\', '').replace('\"', '').replace('\'', '')
+
+        # Return sentences relevant to the query
+        return self.extract_relevant_sentences(text_content, query)
     
     def parse_pdf_content(self, pdf_content):
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
@@ -58,3 +63,25 @@ class WebScraper:
         os.unlink(temp_file_path)
 
         return text
+    
+    def extract_relevant_sentences(self, text_content, query):
+        """Extracts sentences containing keywords from the query."""
+        doc = self.nlp(text_content)
+        sentences = [sent.text for sent in doc.sents]
+        
+        # Create a mini-corpus with our sentences and the query
+        corpus = sentences + [query]
+        
+        # Vectorize the sentences
+        vectorizer = TfidfVectorizer().fit_transform(corpus)
+        vectors = vectorizer.toarray()
+        
+        # Compute cosine similarity between query and each sentence
+        from sklearn.metrics.pairwise import cosine_similarity
+        cosine_similarities = cosine_similarity(vectors[-1].reshape(1, -1), vectors[:-1]).flatten()
+        
+        # Rank sentences based on similarity and select top n
+        ranked_sentences = [sentences[i] for i in cosine_similarities.argsort()[-3:][::-1]]
+        
+        # Join the top n sentences to form the summary
+        return ' '.join(ranked_sentences)

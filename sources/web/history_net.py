@@ -13,9 +13,9 @@ class HistoryNetScraper(WebScraper):
         if response.status_code != 200:
             print(f"Failed to retrieve HistoryNet search results: {response.status_code}")
             return []
-        return self.parse_search_results(response.content)
+        return self.parse_search_results(response.content, query)
     
-    def parse_search_results(self, html_content):
+    def parse_search_results(self, html_content, query):
         soup = BeautifulSoup(html_content, 'html.parser')
         search_results = soup.find_all('article')
         articles = []
@@ -24,7 +24,7 @@ class HistoryNetScraper(WebScraper):
             if title_tag:  # Ensure title_tag is not None
                 title = title_tag.text
                 url = title_tag['href']
-                text_content = self.retrieve_page(url)
+                text_content = self.retrieve_page(url, query)
                 articles.append({
                     'title': title,
                     'url': url,

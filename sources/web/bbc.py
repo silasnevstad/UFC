@@ -12,9 +12,9 @@ class BBCScraper(WebScraper):
         response = requests.get(self.BASE_URL, params=params)
         if response.status_code != 200:
             return []
-        return self.parse_search_results(response.content)
+        return self.parse_search_results(response.content, query)
 
-    def parse_search_results(self, html_content):
+    def parse_search_results(self, html_content, query):
         soup = BeautifulSoup(html_content, 'html.parser')
         search_results = soup.find_all('div', {"data-testid": "default-promo"})
         articles = []
@@ -27,7 +27,7 @@ class BBCScraper(WebScraper):
                     a_tag = result.find('a', class_='ssrcss-its5xf-PromoLink')
                     if a_tag:
                         url = a_tag['href']
-                        text_content = self.retrieve_page(url)
+                        text_content = self.retrieve_page(url, query)
                         articles.append({
                             'title': title,
                             'url': url,

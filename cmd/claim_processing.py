@@ -8,44 +8,53 @@ from sources.web.national_archives import NationalArchivesScraper
 from sources.web.history_net import HistoryNetScraper
 from sources.web.bbc import BBCScraper
 from sources.web.google_scholar import GoogleScholarScraper
-import logging
+from sources.web.nature import NatureScraper
+from rich.progress import track
 
+# genres are ordered by priority (lower number = higher priority)
 GENRES = {
-    'history': [
-        DPLAClient(),
-        NationalArchivesScraper(),
-        HistoryNetScraper(),
-        BBCScraper(),
-    ],
-    'science': [
-        ArxivClient(),
-        PubMedClient(),
-        GoogleScholarScraper(),
-        BBCScraper(),
-    ],
-    'politics': [
-        BBCScraper(),
-    ],
+    'history': {
+        BBCScraper(): 1,
+        NationalArchivesScraper(): 2,
+        HistoryNetScraper(): 3,
+        DPLAClient(): 4,
+    },
+    'science': {
+        ArxivClient(): 1,
+        NatureScraper(): 2,
+        GoogleScholarScraper(): 3,
+        PubMedClient(): 4,
+    },
+    'politics': {
+        BBCScraper(): 1,
+    },
 }
 
-def process_claim(logger, gpt_client, claim, topic=None, genre=None):
+def get_topic_and_genre(logger, gpt_client, claim):
+    logger.info(f'Getting topic and genre for claim: {claim}.')
+
+    function_call = gpt_client.get_function_call(
+        [{"role": "user", "content": f"Identify the seacrh term and topic for the claim: {claim}"}],
+        [determine_search_term]
+    )
+    
+    if function_call:
+        logger.info(f'Found function call: {function_call.get("name")}, arguments: {function_call.get("arguments")}')
+        arguments = json.loads(function_call.get('arguments', '{}'))
+        topic = arguments.get('searchTerm')
+        genre = arguments.get('genre')
+    else:
+        logger.error("No function call found in response")
+        return
+    
+    return topic, genre
+
+def process_claim(logger, gpt_client, claim, topic, genre):
     logger.info(f'Processing claim: {claim}.')
 
-    while topic is None or genre is None:
-        # If topic or genre is not provided, then we need to determine it
-        function_call = gpt_client.get_function_call(
-            [{"role": "user", "content": f"Identify topic for the claim : {claim}"}],
-            [determine_search_term]
-        )
-        
-        if function_call:
-            logger.info(f'Found function call: {function_call.get("name")}, arguments: {function_call.get("arguments")}')
-            arguments = function_call.get('arguments')
-            topic = json.loads(arguments).get('searchTerm')
-            genre = json.loads(arguments).get('genre')
-        else:
-            logger.error("No function call found in response")
-            return
+    if not topic or not genre:
+        logger.warning(f'No topic or genre found for claim: {claim}.')
+        topic, genre = get_topic_and_genre(logger, gpt_client, claim)
     
     limited_source_results = limit_sources(logger, query_sources(logger, genre, topic))
     source_results_str = json.dumps(limited_source_results, indent=2)
@@ -56,20 +65,31 @@ def process_claim(logger, gpt_client, claim, topic=None, genre=None):
         {"role": "user", "content": f"Evaluate the claim (making sure to provide evidence): {claim}"}
     ]
 
-    evaluation_response = gpt_client.chat_completion(messages, [evaluate_claim])
-    arguments = evaluation_response["choices"][0]["message"]["function_call"]["arguments"]
-    arguments_json = json.loads(arguments)
+    evaluation_call = gpt_client.get_function_call(messages, [evaluate_claim])
 
-    claim = arguments_json["claim"]
-    evaluation = arguments_json["evaluation"]
-    evidence = arguments_json["evidence"]
+    if evaluation_call:
+        logger.info(f'Found function call: {evaluation_call.get("name")}, arguments: {evaluation_call.get("arguments")}')
+        json_string = evaluation_call.get('arguments', '{}')
+        try:
+            arguments = json.loads(json_string)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON: {e}")
+            logger.error(f"JSON content: {json_string}")
+            return
+        evaluation = arguments.get('evaluation')
+        evidence = arguments.get('evidence')
+        fixed_claim = arguments.get('fixedClaim')
+    else:
+        logger.error("No function call found in response")
+        return
 
     result = {
         'claim': claim,
         'topic': topic,
         'genre': genre,
         'evaluation': evaluation,
-        'evidence': evidence
+        'evidence': evidence,
+        'fixedClaim': fixed_claim if fixed_claim else None,
     }
 
     return result
@@ -77,18 +97,29 @@ def process_claim(logger, gpt_client, claim, topic=None, genre=None):
 def query_sources(logger, genre, topic):
     logger.info(f'Querying sources for genre: {genre} and topic: {topic}.')
 
-    sources = GENRES.get(genre, [])
+    sources = GENRES.get(genre, {})
+    sorted_sources = sorted(sources, key=sources.get)  # Sort sources by priority
+
     results = []
 
-    for source in sources:
-        results.extend(source.search(topic))
+    for source in track(sorted_sources, description="Querying sources"):
+        source_results = source.search(topic)
+        
+        if source_results:
+            results.extend(source_results)
 
-    logger.info(f'Found {len(results)} results.')
+            # if we have enough results, stop querying sources
+            if len(results) >= 10:
+                logger.info(f'Quitting early after querying {sorted_sources.index(source) + 1} sources. Found {len(results)} results.')
+                break
+
+    else:
+        logger.info(f'Finished querying all sources. Found {len(results)} results.')
 
     return results
 
 def limit_sources(logger, results):
-    max_tokens = 3800
+    max_tokens = 3700
     current_tokens = count_tokens(json.dumps(results))
 
     while current_tokens > max_tokens:
