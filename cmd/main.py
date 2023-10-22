@@ -3,17 +3,17 @@ from gpt.gpt_client import GPTClient
 from constants.functions import split_into_claims, determine_search_term, evaluate_claim
 from constants.prompts import INITIAL_PROMPT
 from .claim_processing import process_claim, get_topic_and_genre
+from helpers.logging import log_function_call
+from rich import print
 import logging
 
 logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    format='%(message)s',
                     handlers=[logging.FileHandler('app.log'),
                               logging.StreamHandler()])
 logger = logging.getLogger(__name__)
 
 def run_conversation(user_input):
-    logger.info('Starting a new conversation.')
-
     gpt_client = GPTClient()
     messages = [
         {"role": "system", "content": INITIAL_PROMPT},
@@ -28,12 +28,14 @@ def run_conversation(user_input):
 
     if function_call:
         function_name = function_call.get('name')
-        logger.info(f'Found function call: {function_name}, arguments: {function_call.get("arguments")}')
+        function_name = function_call.get('name')
+        # log_function_call(logger, function_name, function_call.get("arguments"))
         if function_name == 'split_into_claims':
             # Multiple claims scenario
             claims = json.loads(function_call.get('arguments', {})).get('claims', [])
-            logger.info(f'Found {len(claims)} claims: {claims}')
+            print(f"Found {len(claims)} claims: {claims}")
             for claim in claims:
+                print(f"[bold]Processing claim[/]: [green]{claim}[/]...")
                 topic, genre = get_topic_and_genre(logger, gpt_client, claim)
                 result = process_claim(logger, gpt_client, claim, topic, genre)
                 evaluation_results.append(result)
@@ -43,7 +45,7 @@ def run_conversation(user_input):
             claim = arguments.get('claim')
             topic = arguments.get('searchTerm')
             genre = arguments.get('genre')
-            logger.info(f'Found single claim: {claim}')
+            print(f"Found single claim: {claim}\nProcessing...")
             result = process_claim(logger, gpt_client, claim, topic, genre)
             evaluation_results.append(result)
         else:

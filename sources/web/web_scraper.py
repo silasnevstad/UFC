@@ -5,6 +5,7 @@ import fitz
 import tempfile
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import spacy
 
 class WebScraper:
@@ -65,23 +66,17 @@ class WebScraper:
         return text
     
     def extract_relevant_sentences(self, text_content, query):
-        """Extracts sentences containing keywords from the query."""
         doc = self.nlp(text_content)
         sentences = [sent.text for sent in doc.sents]
         
-        # Create a mini-corpus with our sentences and the query
         corpus = sentences + [query]
         
-        # Vectorize the sentences
         vectorizer = TfidfVectorizer().fit_transform(corpus)
         vectors = vectorizer.toarray()
         
-        # Compute cosine similarity between query and each sentence
-        from sklearn.metrics.pairwise import cosine_similarity
         cosine_similarities = cosine_similarity(vectors[-1].reshape(1, -1), vectors[:-1]).flatten()
         
         # Rank sentences based on similarity and select top n
-        ranked_sentences = [sentences[i] for i in cosine_similarities.argsort()[-3:][::-1]]
+        ranked_sentences = [sentences[i] for i in cosine_similarities.argsort()[-3:][::-1]] # Top 3 sentences
         
-        # Join the top n sentences to form the summary
         return ' '.join(ranked_sentences)

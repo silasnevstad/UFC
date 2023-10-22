@@ -18,7 +18,7 @@ def main():
             break
 
         evaluation_results = []
-        for result in track(run_conversation(user_input), description="[cyan]Checking sources...[/cyan]"):
+        for result in track(run_conversation(user_input), description="[cyan]Evaluating input...[/cyan]"):
             evaluation_results.append(result)
 
         for result in evaluation_results:

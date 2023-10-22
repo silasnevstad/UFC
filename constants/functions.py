@@ -60,7 +60,7 @@ evaluate_claim = {
             },
             "evidence": {
                 "type": "array",
-                "description": "Evidence supporting/opposing claim (max 3).",
+                "description": "Evidence supporting/opposing claim (!!!MAX 3!!!).",
                 "items": {
                     "type": "object",
                     "properties": {

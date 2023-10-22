@@ -1,6 +1,7 @@
 import json
 from constants.functions import determine_search_term, evaluate_claim
 from helpers.tokens import count_tokens
+from helpers.logging import log_function_call
 from sources.api.dpla import DPLAClient
 from sources.api.arxiv import ArxivClient
 from sources.api.pubmed import PubMedClient
@@ -10,6 +11,7 @@ from sources.web.bbc import BBCScraper
 from sources.web.google_scholar import GoogleScholarScraper
 from sources.web.nature import NatureScraper
 from rich.progress import track
+from rich import print
 
 # genres are ordered by priority (lower number = higher priority)
 GENRES = {
@@ -31,18 +33,17 @@ GENRES = {
 }
 
 def get_topic_and_genre(logger, gpt_client, claim):
-    logger.info(f'Getting topic and genre for claim: {claim}.')
-
     function_call = gpt_client.get_function_call(
         [{"role": "user", "content": f"Identify the seacrh term and topic for the claim: {claim}"}],
         [determine_search_term]
     )
     
     if function_call:
-        logger.info(f'Found function call: {function_call.get("name")}, arguments: {function_call.get("arguments")}')
         arguments = json.loads(function_call.get('arguments', '{}'))
+        # log_function_call(logger, function_call.get('name'), arguments)
         topic = arguments.get('searchTerm')
         genre = arguments.get('genre')
+        print(f"Found topic: [bold cyan]{topic}[/] and genre: [bold cyan]{genre}[/] for the claim: [green]{claim}[/]")
     else:
         logger.error("No function call found in response")
         return
@@ -50,8 +51,6 @@ def get_topic_and_genre(logger, gpt_client, claim):
     return topic, genre
 
 def process_claim(logger, gpt_client, claim, topic, genre):
-    logger.info(f'Processing claim: {claim}.')
-
     if not topic or not genre:
         logger.warning(f'No topic or genre found for claim: {claim}.')
         topic, genre = get_topic_and_genre(logger, gpt_client, claim)
@@ -68,7 +67,7 @@ def process_claim(logger, gpt_client, claim, topic, genre):
     evaluation_call = gpt_client.get_function_call(messages, [evaluate_claim])
 
     if evaluation_call:
-        logger.info(f'Found function call: {evaluation_call.get("name")}, arguments: {evaluation_call.get("arguments")}')
+        # log_function_call(logger, evaluation_call.get('name'), evaluation_call.get("arguments"))
         json_string = evaluation_call.get('arguments', '{}')
         try:
             arguments = json.loads(json_string)
@@ -83,6 +82,12 @@ def process_claim(logger, gpt_client, claim, topic, genre):
         logger.error("No function call found in response")
         return
 
+    if evaluation == True:
+        print(f"[bold green]{claim}[/] has been [bold green]verified[/]!")
+    else:
+        print(f"[bold red]{claim}[/] has been [bold red]debunked[/]!")
+    
+
     result = {
         'claim': claim,
         'topic': topic,
@@ -95,14 +100,12 @@ def process_claim(logger, gpt_client, claim, topic, genre):
     return result
 
 def query_sources(logger, genre, topic):
-    logger.info(f'Querying sources for genre: {genre} and topic: {topic}.')
-
     sources = GENRES.get(genre, {})
     sorted_sources = sorted(sources, key=sources.get)  # Sort sources by priority
 
     results = []
 
-    for source in track(sorted_sources, description="Querying sources"):
+    for source in track(sorted_sources, description=f"Querying {genre} sources for {topic}...", transient=True):
         source_results = source.search(topic)
         
         if source_results:
@@ -126,6 +129,6 @@ def limit_sources(logger, results):
         results.pop()
         current_tokens = count_tokens(json.dumps(results))
 
-    logger.info(f'Limited results to {len(results)}.')
+    logger.info(f'Limited results to {len(results)} (tokens: {current_tokens}).')
 
     return results

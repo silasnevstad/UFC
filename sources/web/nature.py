@@ -30,5 +30,4 @@ class NatureScraper(WebScraper):
                 'url': url,
                 'text': text_content
             })
-        print(articles[0])
         return articles
