@@ -6,7 +6,7 @@ import requests
 class NewsAPIClient(APIClient):
     BASE_URL = 'https://newsapi.org/v2/everything'
 
-    def __init__(self, api_key=None, sort_by='publishedAt'):
+    def __init__(self, sort_by='publishedAt', api_key=None):
         super().__init__()
         self.api_key = api_key or config('NEWSAPI_API_KEY')
         self.newsapi = NewsApiClient(api_key=self.api_key)
