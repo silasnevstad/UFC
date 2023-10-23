@@ -1,5 +1,4 @@
 from sources.api.api_client import APIClient
-import requests
 import urllib
 import urllib.request
 import xml.etree.ElementTree as ET

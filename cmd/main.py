@@ -3,7 +3,6 @@ from gpt.gpt_client import GPTClient
 from constants.functions import split_into_claims, determine_search_term, evaluate_claim
 from constants.prompts import INITIAL_PROMPT
 from .claim_processing import process_claim, get_topic_and_genre
-from helpers.logging import log_function_call
 from rich import print
 import logging
 

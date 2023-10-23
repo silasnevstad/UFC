@@ -2,6 +2,7 @@ from sources.web.web_scraper import WebScraper
 from serpapi import GoogleSearch
 from decouple import config
 
+
 class GoogleScholarScraper(WebScraper):
     BASE_URL = 'https://scholar.google.com/scholar'
     API_KEY = config('SERPAPI_API_KEY')
@@ -24,7 +25,8 @@ class GoogleScholarScraper(WebScraper):
             title = result.get('title')
             url = result.get('link')
             text_content = self.retrieve_page(url, query)
-
+            if text_content == '':
+                continue
             results.append({
                 'title': title,
                 'url': url,

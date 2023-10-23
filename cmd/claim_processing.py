@@ -1,7 +1,6 @@
 import json
 from constants.functions import determine_search_term, evaluate_claim
 from helpers.tokens import count_tokens
-from helpers.logging import log_function_call
 from sources.api.dpla import DPLAClient
 from sources.api.arxiv import ArxivClient
 from sources.api.pubmed import PubMedClient
@@ -17,32 +16,44 @@ from rich import print
 # genres are ordered by priority (lower number = higher priority)
 GENRES = {
     'history': {
-        BBCScraper(): 1,
-        NationalArchivesScraper(): 2,
-        HistoryNetScraper(): 3,
-        DPLAClient(): 4,
-        NewsAPIClient(): 5,
+        NewsAPIClient(): 1,
+        BBCScraper(): 2,
+        NationalArchivesScraper(): 3,
+        HistoryNetScraper(): 4,
+        DPLAClient(): 5,
     },
     'science': {
         NewsAPIClient(): 1,
         ArxivClient(): 2,
         NatureScraper(): 3,
-        GoogleScholarScraper(): 4,
-        PubMedClient(): 5,
+        # GoogleScholarScraper(): 4,
+        PubMedClient(): 4,
     },
     'politics': {
         NewsAPIClient(): 1,
         BBCScraper(): 2,
-        GoogleScholarScraper(): 3,
-        NationalArchivesScraper(): 4,
-        DPLAClient(): 5,
+        # GoogleScholarScraper(): 3,
+        NationalArchivesScraper(): 3,
+        DPLAClient(): 4,
     },
     'current events': {
         NewsAPIClient(): 1,
         BBCScraper(): 2,
-        GoogleScholarScraper(): 3,
-        NationalArchivesScraper(): 4,
-        DPLAClient(): 5,
+        # GoogleScholarScraper(): 3,
+        HistoryNetScraper(): 3,
+        ArxivClient(): 4,
+    },
+    'finance': {
+        NewsAPIClient(): 1,
+        # GoogleScholarScraper(): 2,
+        NationalArchivesScraper(): 2,
+        DPLAClient(): 3,
+    },
+    'other': {
+        NewsAPIClient(): 1,
+        # GoogleScholarScraper(): 2,
+        NationalArchivesScraper(): 2,
+        DPLAClient(): 3,
     },
 }
 
@@ -114,7 +125,7 @@ def process_claim(logger, gpt_client, claim, topic, genre):
     return result
 
 def query_sources(logger, genre, topic):
-    sources = GENRES.get(genre, {})
+    sources = GENRES.get(genre.lower(), GENRES.get('other'))
     sorted_sources = sorted(sources, key=sources.get)  # Sort sources by priority
 
     results = []
@@ -127,7 +138,7 @@ def query_sources(logger, genre, topic):
 
             # if we have enough results, stop querying sources
             if len(results) >= 10:
-                logger.info(f'Quitting early after querying {sorted_sources.index(source) + 1} sources. Found {len(results)} results.')
+                logger.info(f'\nQuitting early after querying {sorted_sources.index(source) + 1} sources. Found {len(results)} results.')
                 break
 
     else:
@@ -136,7 +147,7 @@ def query_sources(logger, genre, topic):
     return results
 
 def limit_sources(logger, results):
-    max_tokens = 3700
+    max_tokens = 3000
     current_tokens = count_tokens(json.dumps(results))
 
     while current_tokens > max_tokens:

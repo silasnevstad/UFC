@@ -1,5 +1,4 @@
 from sources.web.web_scraper import WebScraper
-import requests
 from bs4 import BeautifulSoup
 
 class HistoryNetScraper(WebScraper):
@@ -25,6 +24,8 @@ class HistoryNetScraper(WebScraper):
                 title = title_tag.text
                 url = title_tag['href']
                 text_content = self.retrieve_page(url, query)
+                if text_content == '':
+                    continue
                 articles.append({
                     'title': title,
                     'url': url,

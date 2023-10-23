@@ -34,6 +34,8 @@ class ReutersScraper(WebScraper):
                     if url.startswith('/'):
                         url = 'https://www.reuters.com' + url
                     text_content = self.retrieve_page(url, query)
+                    if text_content == '':
+                        continue
                     articles.append({
                         'title': title,
                         'url': url,
