@@ -6,17 +6,18 @@ import requests
 class NewsAPIClient(APIClient):
     BASE_URL = 'https://newsapi.org/v2/everything'
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, sort_by='publishedAt'):
         super().__init__()
         self.api_key = api_key or config('NEWSAPI_API_KEY')
         self.newsapi = NewsApiClient(api_key=self.api_key)
+        self.sort_by = sort_by
 
     def search(self, query):
         response = self.newsapi.get_everything(
             q=query,
             sources='bbc-news,reuters,the-new-york-times,associated-press,bloomberg,cnn,the-washington-post,business-insider,medical-news-today,national-geographic,new-scientist',
             language='en',
-            sort_by='publishedAt',
+            sort_by=self.sort_by,
             page=1)
         return self.process_newsapi_response(response, query)
 

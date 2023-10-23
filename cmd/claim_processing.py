@@ -16,14 +16,14 @@ from rich import print
 # genres are ordered by priority (lower number = higher priority)
 GENRES = {
     'history': {
-        NewsAPIClient(): 1,
+        NewsAPIClient('relevancy'): 1,
         BBCScraper(): 2,
         NationalArchivesScraper(): 3,
         HistoryNetScraper(): 4,
         DPLAClient(): 5,
     },
     'science': {
-        NewsAPIClient(): 1,
+        NewsAPIClient('relevancy'): 1,
         ArxivClient(): 2,
         NatureScraper(): 3,
         # GoogleScholarScraper(): 4,
@@ -50,7 +50,7 @@ GENRES = {
         DPLAClient(): 3,
     },
     'other': {
-        NewsAPIClient(): 1,
+        NewsAPIClient('relevancy'): 1,
         # GoogleScholarScraper(): 2,
         NationalArchivesScraper(): 2,
         DPLAClient(): 3,
