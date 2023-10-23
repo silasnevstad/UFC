@@ -1,7 +1,7 @@
-# Universal Fact-Checker (UFC)
+# Verifi
 
-## What is UFC?
-UFC is a tool designed to help you check the credibility and factualness of any claim, it does this by providing soures either supporting or opposing the claim. It leverages GPT and uses a variety of reputable sources to determine the validity of a claim.
+## What is Verifi?
+Verifi is a tool designed to help you check the credibility and factualness of any claim, it does this by providing soures either supporting or opposing the claim. It leverages GPT and uses a variety of reputable sources to determine the validity of a claim.
 
 ## How does it work?
 UFC operates in a structured, step-wise manner to dissect, verify, and substantiate claims, ensuring each step is backed by credible sources. Here's an overview of its operation:
