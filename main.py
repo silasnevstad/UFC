@@ -9,8 +9,6 @@ console = Console()
 
 def main():
     init(autoreset=True)
-    console.print("Welcome to the Universal Fact-Checker!", style="green")
-
     while True:
         user_input = console.input("[yellow]Enter a claim to check (or type 'q' or 'quit' to quit):[/yellow] ").strip()
         if user_input.lower() in ['q', 'quit']:
